@@ -191,6 +191,7 @@ void bfs(struct Graph *graph, int startVertex) {
 // Returns element at front of queue
 int pollQueue(struct queue *q) { return q->items[q->front]; }
 
+//comment
 int main(){
     int **M = gen_rand(8, 0.66);
     for(int i = 0; i<8; i++){
