@@ -30,7 +30,6 @@ int **gen_rand(int size, float p){
         for(int j = 0; j < size; j++){
             uu = rand();
             u = uu/m;
-//            printf("uu value : %d\n", uu);
             if(u>p){
                 M[i][j] = 0;
             }
@@ -131,6 +130,7 @@ int isEmpty(struct queue *q) {
     else
         return 0;
 }
+
 // Inserts item at start of queue
 void enqueue(struct queue *q, int value) {
     if (q->rear == SIZE - 1)
@@ -160,38 +160,37 @@ int dequeue(struct queue *q) {
     return item;
 }
 
-void bfs(struct Graph *graph, int startVertex) {
+// Returns element at front of queue
+int pollQueue(struct queue *q) { return q->items[q->front]; }
+
+void bfs(int **Matrix, int startVertex, int size) {
     struct queue *q = createQueue();
+    int visited[size];
+    for(int i = 0; i<size; i++){
+        visited[i] = 0;
+    }
 
     // Add to visited list and put in queue
-    graph->visited[startVertex] = 1;
+    visited[startVertex] = 1;
     enqueue(q, startVertex);
-    printf("Breadth first traversal from vertex %d is:\n", startVertex);
+    printf("Breadth first traversal from vertex %d is:\n", 0);
 
     // Iterate while queue not empty
     while (!isEmpty(q)) {
         printf("%d ", pollQueue(q));
         int currentVertex = dequeue(q);
 
-        struct node *temp = graph->adjLists[currentVertex];
         // Add all unvisited neighbours of current vertex to queue to be printed
         // next
-        while (temp) {
-            int adjVertex = temp->vertex;
-            // Only add if neighbour is unvisited
-            if (graph->visited[adjVertex] == 0) {
-                graph->visited[adjVertex] = 1;
-                enqueue(q, adjVertex);
-            }
-            temp = temp->next;
+        for(int i = 0; i< size; i++){
+           if(Matrix[currentVertex][i] == 1 && visited[i] == 0){
+               visited[i] = 1;
+               enqueue(q, i);
+           }
         }
     }
 }
 
-// Returns element at front of queue
-int pollQueue(struct queue *q) { return q->items[q->front]; }
-
-//comment
 int main(){
     int **M = gen_rand(8, 0.66);
     for(int i = 0; i<8; i++){
@@ -200,22 +199,10 @@ int main(){
         }
         printf("\n");
     }
-    for(int i =0; i<8; i++){
-        M = MatrixProduct(M, M, 8);
-    }
     printf("\n");
     printf("\n");
     printf("\n");
     printf("\n");
-    /*
-    for(int i = 0; i<8; i++){
-        for(int j = 0; j<8; j++){
-            printf("%d\t", M[i][j]);
-        }
-        printf("\n");
-    }
-    */
-    FloydWarshall(M, 8);
+    bfs(M, 0, 8);
     return 0;
 }
-
