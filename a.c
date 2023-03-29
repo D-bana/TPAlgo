@@ -63,6 +63,26 @@ int **gen_nonoriented(int size, float p){
     return M;
 }
 
+int **gen_weighted(int size, float p){
+    int **M = MatrixAllocation(size);
+    srand(time(NULL));
+    float u = 0;
+    int uu;
+    for(int i = 0; i < size; i++){
+        for(int j = 0; j < size; j++){
+            uu = rand();
+            u = uu/m;
+            if(u>p){
+                M[i][j] = 0;
+            }
+            else {
+                M[i][j] = uu%56;
+            }
+        }
+    }
+    return M;
+}
+
 int **MatrixProduct(int **Matrix1, int **Matrix2, int size) {
     int **Product = MatrixAllocation(size);
 
@@ -76,7 +96,7 @@ int **MatrixProduct(int **Matrix1, int **Matrix2, int size) {
     return Product;
 }
 
-void print(int dist[], int V) {
+void printfloyd(int dist[], int V) {
     printf("\nThe Distance matrix for Floyd - Warshall\n");
     for (int i = 0; i < V; i++)
     {
@@ -113,7 +133,7 @@ void FloydWarshall(int **dist, int V) {
     for (int i = 0; i < V; i++)
         for (int j = 0; j < V; j++) dist1d[i * V + j] = dist[i][j];
 
-    print(dist1d, V);
+    printfloyd(dist1d, V);
 }
 
 struct queue *createQueue() {
@@ -191,8 +211,90 @@ void bfs(int **Matrix, int startVertex, int size) {
     }
 }
 
+void bfs_shortest_path(int **Matrix, int startVertex, int size) {
+    struct queue *q = createQueue();
+    int visited[size];
+    int distance[size];
+
+    for(int i = 0; i < size; i++) {
+        visited[i] = 0;
+        distance[i] = INT_MAX;
+    }
+
+    visited[startVertex] = 1;
+    distance[startVertex] = 0;
+    enqueue(q, startVertex);
+
+    while (!isEmpty(q)) {
+        int currentVertex = dequeue(q);
+
+        for(int i = 0; i < size; i++) {
+            if(Matrix[currentVertex][i] == 1 && visited[i] == 0) {
+                visited[i] = 1;
+                distance[i] = distance[currentVertex] + 1;
+                enqueue(q, i);
+            }
+        }
+    }
+
+    printf("Shortest distances from vertex %d:\n", startVertex);
+    for(int i = 0; i < size; i++) {
+        printf("%d: %d\n", i, distance[i]);
+    }
+}
+
+void print(int dist[], int V) {
+    printf("\nVertex  Distance\n");
+    for (int i = 0; i < V; i++)
+    {
+        if (dist[i] != INT_MAX)
+            printf("%d\t%d\n", i, dist[i]);
+        else
+            printf("%d\tINF", i);
+    }
+}
+
+int minDistance(int mdist[], int vset[], int V) {
+    int minVal = INT_MAX;
+    static int minInd = -1; //remembers the previous value if not modified in the loop
+    for (int i = 0; i < V; i++)
+        if (vset[i] == 0 && mdist[i] < minVal) {
+            minVal = mdist[i];
+            minInd = i;
+        }
+
+    return minInd;
+}
+
+void Dijkstra(int **graph, int size, int src) {
+    int mdist[size];  // Stores updated distances to vertex
+    int vset[size];   // vset[i] is true if the vertex i included
+                   // in the shortest path tree
+
+    // Initialise mdist and vset. Set distance of source as zero
+    for (int i = 0; i < size; i++) mdist[i] = INT_MAX, vset[i] = 0;
+
+    mdist[src] = 0;
+
+    // iterate to find shortest path
+    for (int count = 0; count < size - 1; count++) {
+        int u = minDistance(mdist, vset, size);
+        vset[u] = 1;
+
+        for (int v = 0; v < size; v++) {
+            if (!vset[v] && graph[u][v] != INT_MAX &&
+                mdist[u] + graph[u][v] < mdist[v])
+                mdist[v] = mdist[u] + graph[u][v];
+        }
+    }
+
+    print(mdist, size);
+
+    return;
+}
+
 int main(){
-    int **M = gen_rand(8, 0.66);
+    int **M = gen_weighted(8, 0.66);
     for(int i = 0; i<8; i++){
         for(int j = 0; j<8; j++){
             printf("%d\t", M[i][j]);
@@ -203,6 +305,8 @@ int main(){
     printf("\n");
     printf("\n");
     printf("\n");
-    bfs(M, 0, 8);
+//    bfs_shortest_path(M, 0, 8);
+//    FloydWarshall(M, 8);
+    Dijkstra(M, 8, 0);
     return 0;
 }
